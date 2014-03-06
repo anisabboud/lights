@@ -1,10 +1,10 @@
 
 int button = 0;
 
-void setup(){
+void setup() {
 
 }
 
-void loop(){
+void loop() {
 
 }
