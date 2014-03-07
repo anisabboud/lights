@@ -111,17 +111,11 @@ void newLevel() {
 	}	
 }
 
-// Magic. Don't touch.
 void solveCorner(int row, int col) {
 	solution[row][col] = (!state[row][col] + !state[row][2 - col] + !state[2 - row][col] + !state[1][2 - col] + !state[2 - row][1]) % 2 == 1;
 }
-void solveEdge(int row, int col) {
-	solution[row][col] = (!state[1][1] + !state[2 - row][2 - col] + !state[2 - row][col] + !state[1][2 - col]) % 2 == 1;
-}
-void solveCenter() {
-	solution[1][1] = (!state[0][1] + !state[1][0] + !state[1][1] + !state[1][2] + !state[2][1]) % 2 == 1;
-}
 
+// Magic. Don't touch.
 // Assumes N==3!
 void solve() {
 	solveCorner(0, 0);
@@ -129,12 +123,12 @@ void solve() {
 	solveCorner(2, 2);
 	solveCorner(2, 2);
 
-	solveEdge(0, 1);
-	solveEdge(1, 0);
-	solveEdge(1, 2);
-	solveEdge(2, 1);
+	solution[0][1] = (!state[1][1] + !state[2][0] + !state[2][1] + !state[2][2]) % 2 == 1;
+	solution[1][0] = (!state[1][1] + !state[0][2] + !state[2][2] + !state[2][2]) % 2 == 1;
+	solution[1][2] = (!state[1][1] + !state[0][0] + !state[1][0] + !state[2][0]) % 2 == 1;
+	solution[2][1] = (!state[1][1] + !state[0][0] + !state[0][1] + !state[0][2]) % 2 == 1;
 
-	solveCenter();
+	solution[1][1] = (!state[0][1] + !state[1][0] + !state[1][1] + !state[1][2] + !state[2][1]) % 2 == 1;
 }
 
 void initializeGame();
