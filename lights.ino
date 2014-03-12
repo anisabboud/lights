@@ -3,18 +3,17 @@
 
 #define N 3
 #define NUM_INPUTS       9    // 6 on the front + 12 on the back
-#define MIN_THRESHOLD   800
-#define MAX_THRESHOLD   1000
+#define MIN_THRESHOLD   777
+#define MAX_THRESHOLD   888
 #define COIN_THRESHOLD  600
 
 #define HINT_TIMEOUT 4000
-#define NEW_LEVEL_DELAY 1000
 #define BLINK_TIMEOUT 500
 #define BLINK_TIMES 3
 
 float inputs[NUM_INPUTS];
 bool pressed[NUM_INPUTS];
-// bool newLevelPressed = false;  // We don't need this because we have a delay.
+bool newLevelPressed = false;  // We don't need this because we have a delay.
 
 MovingAverageFilter movingAverageFilters[NUM_INPUTS];
 
@@ -36,7 +35,8 @@ const int inPinNumbers[NUM_INPUTS] = {
   A2, A5, A8              //basically first 9 pins for the 9 lights
 };
 const int outPinNumbers[NUM_INPUTS] = {
-  0, 1, 2, 3, 5, 7, 9, 10, 11             //basically first 9 pins for the 9 lights
+  // 0, 1, 2, 3, 5, 7, 9, 10, 11             // basically first unused 9 pins for the 9 lights
+  0, 3, 9, 1, 5, 10, 2, 7, 11
 };
 
 const int newLevelPin = 13;  // Digital.
@@ -94,8 +94,9 @@ void logMatrix(bool matrix[N][N], String header) {
 }
 
 void click(int row, int col) {
-  logMatrix(level, "Level Before Click:");
-  logMatrix(state, "State Before Click:");
+  Serial.println("You clicked " + String(row) + ", " + String(col));
+  //logMatrix(level, "Level Before Click:");
+  //logMatrix(state, "State Before Click:");
 
   flip(row, col);
   flip(row - 1, col);
@@ -114,10 +115,10 @@ void click(int row, int col) {
     }
   }
   
-  logMatrix(state, "State After Click:");
+  //logMatrix(state, "State After Click:");
 }
 
-void newLevel() {
+void newLevel() {  
   int randNumber = random(1 << (N * N));
 
   for (int row = 0; row < N; row++) {
@@ -128,6 +129,7 @@ void newLevel() {
   }
 
   turnLights(state);
+  logMatrix(level, "New Level!");
 }
 
 void solveCorner(int row, int col) {
@@ -160,7 +162,7 @@ void showHint() {
 void intializeHardware() {
   /* Set up input pins 
    DEactivate the internal pull-ups, since we're using external resistors */
-  for (int i=0; i<NUM_INPUTS; i++)
+  for (int i = 0; i < NUM_INPUTS; i++)
   {
     pinMode(inPinNumbers[i], INPUT);
     pinMode(outPinNumbers[i], OUTPUT);
@@ -189,7 +191,18 @@ void setup() {
   turnOffAllLights();
 }
 
+int count = 0;
 void loop() {
+  count++;
+//  if (count % 1000 == 0) {
+//    Serial.print(String(analogRead(A6)) + " ");
+//  }
+//  if (count % 10000 == 0) {
+//    Serial.println();
+//  }
+//  return;
+  
+  
   // Hint.
 //  if (analogRead(coinPin) > COIN_THRESHOLD) {
 //    showHint();
@@ -197,17 +210,21 @@ void loop() {
 //  }
 
   // New Level.
-  if (digitalRead(newLevelPin)) {
+  if (!newLevelPressed && digitalRead(newLevelPin)) {
+    newLevelPressed = true;
     newLevel();
-    delay(NEW_LEVEL_DELAY);  //short delay for user to release button (else restart game again)
     return;
   }
+  newLevelPressed = (digitalRead(newLevelPin) == HIGH);
 
   // Gameplay.
   for (int i = 0; i < NUM_INPUTS; i++) {
   	// Filter input for noise reduction.
     inputs[i] = movingAverageFilters[i].process(analogRead(inPinNumbers[i]));
-
+    if (i == 2 && count % 50 == 0) {
+      Serial.println(inputs[i]);
+    }
+      
     if (inputs[i] < MIN_THRESHOLD) {  // Pressed a button. Call click().
       if (!pressed[i]) {
         pressed[i] = true;
