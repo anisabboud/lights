@@ -8,13 +8,13 @@
 #define COIN_THRESHOLD  600
 
 #define HINT_TIMEOUT 4000
-#define NEW_LEVEL_DELAY 2000
+#define NEW_LEVEL_DELAY 1000
 #define BLINK_TIMEOUT 500
 #define BLINK_TIMES 3
 
 float inputs[NUM_INPUTS];
 bool pressed[NUM_INPUTS];
-// bool newLevelPressed = false;
+// bool newLevelPressed = false;  // We don't need this because we have a delay.
 
 MovingAverageFilter movingAverageFilters[NUM_INPUTS];
 
@@ -80,7 +80,21 @@ void flip(int row, int col) {
   }
 }
 
+void logMatrix(bool matrix[N][N], String header) {
+  Serial.println(header);
+  for (int row = 0; row < N; row++) {
+    for (int col = 0; col < N; col++) {
+      Serial.print(matrix[row][col] ? "1" : "0");
+    }
+    Serial.println();
+  }
+  Serial.println();
+}
+
 void click(int row, int col) {
+  logMatrix(level, "Level Before Click:");
+  logMatrix(state, "State Before Click:");
+
   flip(row, col);
   flip(row - 1, col);
   flip(row + 1, col);
@@ -89,7 +103,7 @@ void click(int row, int col) {
 
   turnLights(state);
 
-  if (complete) {  // Blink all lights.
+  if (complete()) {  // Blink all lights.
     for (int i = 0; i < BLINK_TIMES; i++) {
       delay(BLINK_TIMEOUT);
       turnOffAllLights();
@@ -97,6 +111,8 @@ void click(int row, int col) {
       turnLights(state);
     }
   }
+  
+  logMatrix(state, "State After Click:");
 }
 
 void newLevel() {
@@ -173,13 +189,13 @@ void setup() {
 
 void loop() {
   // Hint.
-  if (analogRead(coinPin) > COIN_THRESHOLD) {
-    showHint();
-    return;
-  }
+//  if (analogRead(coinPin) > COIN_THRESHOLD) {
+//    showHint();
+//    return;
+//  }
 
   // New Level.
-  if (digitalRead(newLevelPin)) {
+  if (!digitalRead(newLevelPin)) {
     newLevel();
     delay(NEW_LEVEL_DELAY);  //short delay for user to release button (else restart game again)
     return;
