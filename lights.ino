@@ -3,8 +3,8 @@
 
 #define N 3
 #define NUM_INPUTS       9    // 6 on the front + 12 on the back
-#define MIN_THRESHOLD   777
-#define MAX_THRESHOLD   888
+#define MIN_THRESHOLD   333
+#define MAX_THRESHOLD   666
 #define COIN_THRESHOLD  600
 
 #define HINT_TIMEOUT 4000
@@ -30,9 +30,7 @@ MovingAverageFilter movingAverageFilters[NUM_INPUTS];
 // A10 – D10
 // A11 – D12
 const int inPinNumbers[NUM_INPUTS] = {
-  A0, A3, A6,
-  A1, A4, A7,
-  A2, A5, A8              //basically first 9 pins for the 9 lights
+  A0, A3, A6, A1, A4, A7, A2, A5, A8              // basically first 9 pins for the 9 lights
 };
 const int outPinNumbers[NUM_INPUTS] = {
   // 0, 1, 2, 3, 5, 7, 9, 10, 11             // basically first unused 9 pins for the 9 lights
@@ -221,8 +219,9 @@ void loop() {
   for (int i = 0; i < NUM_INPUTS; i++) {
   	// Filter input for noise reduction.
     inputs[i] = movingAverageFilters[i].process(analogRead(inPinNumbers[i]));
-    if (i == 2 && count % 50 == 0) {
-      Serial.println(inputs[i]);
+    if (count % 50 == 0) {
+      Serial.print(inputs[i]);
+      Serial.print("  ");
     }
       
     if (inputs[i] < MIN_THRESHOLD) {  // Pressed a button. Call click().
@@ -236,6 +235,9 @@ void loop() {
         pressed[i] = false;
       }
     }
+  }
+  if(count %50 == 0) {
+    Serial.println();
   }
 }
 
