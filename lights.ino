@@ -167,6 +167,7 @@ void intializeHardware() {
     pinMode(inPinNumbers[i], INPUT);
     pinMode(outPinNumbers[i], OUTPUT);
     pressed[i] = false;
+    inputs[i] = 1023;
   }
   // pinMode(testLed, OUTPUT);
   // digitalWrite(testLed, LOW);
@@ -203,11 +204,6 @@ void loop() {
 //  return;
   
   
-  // Hint.
-//  if (analogRead(coinPin) > COIN_THRESHOLD) {
-//    showHint();
-//    return;
-//  }
 
   // New Level.
   if (!newLevelPressed && digitalRead(newLevelPin)) {
@@ -217,12 +213,19 @@ void loop() {
   }
   newLevelPressed = (digitalRead(newLevelPin) == HIGH);
 
+  //  Hint.
+  if (analogRead(coinPin) > COIN_THRESHOLD) {
+    showHint();
+    return;
+  }
+
   // Gameplay.
   for (int i = 0; i < NUM_INPUTS; i++) {
   	// Filter input for noise reduction.
     inputs[i] = movingAverageFilters[i].process(analogRead(inPinNumbers[i]));
-    if (i == 2 && count % 50 == 0) {
-      Serial.println(inputs[i]);
+    if (count % 50 == 0) {
+      Serial.print(inputs[i]);
+      Serial.print(" ");
     }
       
     if (inputs[i] < MIN_THRESHOLD) {  // Pressed a button. Call click().
@@ -237,5 +240,6 @@ void loop() {
       }
     }
   }
+  Serial.println();
 }
 
