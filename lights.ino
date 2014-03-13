@@ -14,6 +14,7 @@
 float inputs[NUM_INPUTS];
 bool pressed[NUM_INPUTS];
 bool newLevelPressed = false;  // We don't need this because we have a delay.
+int coinPinVal;
 
 MovingAverageFilter movingAverageFilters[NUM_INPUTS];
 
@@ -204,18 +205,24 @@ void loop() {
   
 
   // New Level.
-  if (!newLevelPressed && digitalRead(newLevelPin)) {
-    newLevelPressed = true;
-    newLevel();
-    return;
-  }
-  newLevelPressed = (digitalRead(newLevelPin) == HIGH);
+  // if (!newLevelPressed && digitalRead(newLevelPin)) {
+  //   newLevelPressed = true;
+  //   newLevel();
+  //   return;
+  // }
+  // newLevelPressed = (digitalRead(newLevelPin) == HIGH);
 
   //  Hint.
-  if (analogRead(coinPin) > COIN_THRESHOLD) {
-    showHint();
-    return;
+  coinPinVal = analogRead(coinPin);
+  if (count % 50 == 0){ 
+    Serial.print(coinPinVal);
+    Serial.print("  ");
   }
+  return;
+  // if (coinPinVal > COIN_THRESHOLD) {
+  //   showHint();
+  //   return;
+  // }
 
   // Gameplay.
   for (int i = 0; i < NUM_INPUTS; i++) {
