@@ -1,11 +1,10 @@
-
 #include "MovingAverageFilter.h"
 
 #define N 3
 #define NUM_INPUTS       9    // 6 on the front + 12 on the back
 #define MIN_THRESHOLD   333
 #define MAX_THRESHOLD   666
-#define COIN_THRESHOLD  600
+#define COIN_THRESHOLD  111
 
 #define HINT_TIMEOUT 4000
 #define BLINK_TIMEOUT 500
@@ -140,11 +139,11 @@ void solveCorner(int row, int col) {
 void solve() {
   solveCorner(0, 0);
   solveCorner(0, 2);
-  solveCorner(2, 2);
+  solveCorner(2, 0);
   solveCorner(2, 2);
 
   solution[0][1] = (!state[1][1] + !state[2][0] + !state[2][1] + !state[2][2]) % 2 == 1;
-  solution[1][0] = (!state[1][1] + !state[0][2] + !state[2][2] + !state[2][2]) % 2 == 1;
+  solution[1][0] = (!state[1][1] + !state[0][2] + !state[1][2] + !state[2][2]) % 2 == 1;
   solution[1][2] = (!state[1][1] + !state[0][0] + !state[1][0] + !state[2][0]) % 2 == 1;
   solution[2][1] = (!state[1][1] + !state[0][0] + !state[0][1] + !state[0][2]) % 2 == 1;
 
@@ -153,8 +152,13 @@ void solve() {
 
 void showHint() {
   solve();  // Update solution[][] matrix.
-  turnLights(solution);  // Show the solution.
-  delay(HINT_TIMEOUT);  // Wait a few seconds.
+  // Blink hint
+  for (int i = 0; i < BLINK_TIMES; i++) {
+    turnLights(solution);  // Show the solution.
+    delay(BLINK_TIMEOUT);
+    turnOffAllLights();
+    delay(BLINK_TIMEOUT);
+  }
   turnLights(state);  // Hide the solution and show the state back.
 }
 
@@ -194,23 +198,14 @@ void setup() {
 int count = 0;
 void loop() {
   count++;
-//  if (count % 1000 == 0) {
-//    Serial.print(String(analogRead(A6)) + " ");
-//  }
-//  if (count % 10000 == 0) {
-//    Serial.println();
-//  }
-//  return;
-  
-  
 
   // New Level.
-  // if (!newLevelPressed && digitalRead(newLevelPin)) {
-  //   newLevelPressed = true;
-  //   newLevel();
-  //   return;
-  // }
-  // newLevelPressed = (digitalRead(newLevelPin) == HIGH);
+  if (!newLevelPressed && digitalRead(newLevelPin)) {
+    newLevelPressed = true;
+    newLevel();
+    return;
+  }
+  newLevelPressed = (digitalRead(newLevelPin) == HIGH);
 
   //  Hint.
   coinPinVal = analogRead(coinPin);
@@ -218,11 +213,10 @@ void loop() {
     Serial.print(coinPinVal);
     Serial.print("  ");
   }
-  return;
-  // if (coinPinVal > COIN_THRESHOLD) {
-  //   showHint();
-  //   return;
-  // }
+  if (coinPinVal > COIN_THRESHOLD) {
+    showHint();
+    return;
+  }
 
   // Gameplay.
   for (int i = 0; i < NUM_INPUTS; i++) {
